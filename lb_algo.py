@@ -38,18 +38,27 @@ def load_and_organize_data(file_name):
     df = pd.read_excel(file_name, engine="openpyxl")
     participants_by_language = {}
     for _, row in df.iterrows():
-        learning_languages = [standardize_language(row['Language you want to learn 1'], standard_languages)]
-        if pd.notna(row['Language you want to learn 2 (Optional)']):
-            learning_languages.append(standardize_language(row['Language you want to learn 2 (Optional)'], standard_languages))
+        learning_languages = []
+
+        # Collect and standardize up to 3 learning languages
+        for col in [
+            'Language you want to learn 1',
+            'Language you want to learn 2 (Optional)',
+            'Language you want to learn 3 (Optional)'
+        ]:
+            if pd.notna(row.get(col)) and str(row[col]).strip():
+                standardized = standardize_language(str(row[col]).strip(), standard_languages)
+                learning_languages.append(standardized)
 
         participant = Participant(row['Name'], row['Student Email'], [], learning_languages)
-        
+
         for language in learning_languages:
             if language not in participants_by_language:
                 participants_by_language[language] = []
             participants_by_language[language].append(participant)
-    
+
     return participants_by_language
+
 
 
 participants_by_language = load_and_organize_data("Language_Buddies_Sign_Up_(Responses).xlsx")
